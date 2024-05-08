@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'detector = ouster_pedestrian_detector.detector:main'
+            'detector = ouster_pedestrian_detector.detector_node:main'
         ],
     },
 )
