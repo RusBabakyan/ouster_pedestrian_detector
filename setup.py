@@ -1,16 +1,16 @@
 from setuptools import find_packages, setup
 
-package_name = 'pedestrian_detector'
+package_name = 'ouster_pedestrian_detector'
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=find_packages(exclude=['test'], include=['pedestrian_detector', 'pedestrian_detector.*']),
+    packages=find_packages(exclude=['test'], include=['ouster_pedestrian_detector', 'ouster_pedestrian_detector.*']),
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name, ['pedestrian_detector/best.pt'])],
+        ('share/' + package_name, ['ouster_pedestrian_detector/best.pt'])],
     install_requires=['setuptools', 'rclpy', 'message_filters',
                         'opencv-python',
                         'numpy',
@@ -25,7 +25,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'detector = pedestrian_detector.detector:main'
+            'detector = ouster_pedestrian_detector.detector:main'
         ],
     },
 )
