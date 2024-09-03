@@ -89,6 +89,7 @@ class PedestrianDetectorNode(Node):
         marker_array.header.frame_id = self.frame_id
         for cart_position in people.cart_position:
             marker = Marker()
+            marker.idx = 1
             marker.type = Marker.SPHERE_LIST
             # marker.position = Point(x=float(cart_position[0]), y=float(cart_position[1]))
             marker.scale = Vector3(x=1,y=1,z=1)
@@ -97,6 +98,8 @@ class PedestrianDetectorNode(Node):
             marker.color = ColorRGBA(r=1,g=0,b=0,a=1)
             marker.lifetime = Duration(seconds=0.1).to_msg()
             marker_array.poses.append(marker)
+            marker.points = []
+            marker.points.append(Point(x=float(cart_position[0]), y=float(cart_position[1])))
 
         self.marker_publisher.publish(marker_array)
 
