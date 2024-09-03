@@ -70,6 +70,7 @@ class PedestrianDetectorNode(Node):
     def PublishAllData(self, people):
         time_stamp = self.get_clock().now().to_msg() 
         self.PublishPoseArray(people, time_stamp)
+        self.PublishMarkerArray(people, time_stamp)
         pass
 
     def PublishPoseArray(self, people, time_stamp):
