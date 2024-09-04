@@ -4,6 +4,7 @@ import numpy as np
 from time import time
 from pprint import pprint
 import matplotlib.pyplot as plt
+import torch
 
 # from pathlib import Path
 # from rosbags.highlevel import AnyReader
@@ -75,7 +76,9 @@ class Viewer():
 
 class PedestrianDetector():
     def __init__(self, model_path, center_radius=10, imgsz=640, imgwidth=1024, angle_offset=0, conf_threshold=0.0) -> None:
+        torch.cuda.set_device(0)
         self.model = YOLO(model_path, task="detect")
+        self.model.to("cuda")
         self.imgsz = imgsz
         self.imgwidth = imgwidth
         self.center_radius = center_radius

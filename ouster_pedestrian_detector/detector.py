@@ -41,8 +41,8 @@ class PedestrianDetectorNode(Node):
 
         self.cv_bridge = CvBridge()
         self.model_path = os.path.join(get_package_share_directory(package_name), 'best.pt')
-        self.detector = PedestrianDetector(self.model_path, conf_threshold=0.6, angle_offset=-np.pi/2, center_radius=3)
-
+        # self.detector = PedestrianDetector(self.model_path, conf_threshold=0.6, angle_offset=-np.pi/2, center_radius=3)
+        self.detector = PedestrianDetector(self.model_path, conf_threshold=0.6, angle_offset=0, center_radius=3)
         self.frame_id = 'os_lidar'
         self.get_logger().info(f"Node started")
 
@@ -86,21 +86,34 @@ class PedestrianDetectorNode(Node):
 
     def PublishMarkerArray(self, people, time_stamp):
         marker_array = MarkerArray()
-        marker_array.header.stamp = time_stamp
-        marker_array.header.frame_id = self.frame_id
-        for cart_position in people.cart_position:
+        for index, (cart_position, confidence) in enumerate(zip(people.cart_position, people.conf)):
             marker = Marker()
-            marker.idx = 1
-            marker.type = Marker.SPHERE_LIST
+            marker.id = index
+            marker.header.stamp = time_stamp
+            marker.header.frame_id = self.frame_id
+            # marker.header.frame_id = 'base_link'
+            marker.type = 1
             # marker.position = Point(x=float(cart_position[0]), y=float(cart_position[1]))
-            marker.scale = Vector3(x=1,y=1,z=1)
-            marker.pose = Pose(position=Point(x=float(cart_position[0]), y=float(cart_position[1])),
-                               orientation=Quaternion(x=0.,y=0.,z=0.,w=1.))
-            marker.color = ColorRGBA(r=1,g=0,b=0,a=1)
+            # marker.scale = Vector3(x=1.,y=1.,z=1.)
+            scale = 1.
+            marker.scale.x = 0.5
+            marker.scale.y = 0.5
+            marker.scale.z = 1.5
+            # marker.pose = Pose(position=Point(x=float(cart_position[0]), y=float(cart_position[1])),
+            #                    orientation=Quaternion(x=0.,y=0.,z=0.,w=1.))
+            real_scale = 1000
+            marker.pose.position.x = float(cart_position[0])/real_scale
+            marker.pose.position.y = float(cart_position[1])/real_scale
+            # marker.color = ColorRGBA(r=1,g=0,b=0,a=1)
+            marker.color.r = 0.0
+            marker.color.g = 1.0
+            marker.color.b = 0.0
+            marker.color.a = float(confidence)
             marker.lifetime = Duration(seconds=0.1).to_msg()
-            marker_array.poses.append(marker)
-            marker.points = []
-            marker.points.append(Point(x=float(cart_position[0]), y=float(cart_position[1])))
+            # marker.points = []
+            # marker.points.append(Point(x=float(cart_position[0]), y=float(cart_position[1])))
+            marker.frame_locked = True
+            marker_array.markers.append(marker)
 
         self.marker_publisher.publish(marker_array)
 
