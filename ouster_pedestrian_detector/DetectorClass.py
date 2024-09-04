@@ -115,7 +115,7 @@ class PedestrianDetector():
             mask[min_y[i]:max_y[i], min_x[i]:max_x[i]] = True
             filtered_pixels = img_range[mask]
             distance[i] = np.mean(filtered_pixels, axis=0)
-        return distance * self.distance_scale
+        return (distance * self.distance_scale / 1000).astype(float)
 
 
     def find_people(self, img, img_range) -> namedtuple:

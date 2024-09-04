@@ -101,9 +101,9 @@ class PedestrianDetectorNode(Node):
             marker.scale.z = 1.5
             # marker.pose = Pose(position=Point(x=float(cart_position[0]), y=float(cart_position[1])),
             #                    orientation=Quaternion(x=0.,y=0.,z=0.,w=1.))
-            real_scale = 1000
-            marker.pose.position.x = float(cart_position[0])/real_scale
-            marker.pose.position.y = float(cart_position[1])/real_scale
+            # real_scale = 1000
+            marker.pose.position.x = float(cart_position[0])
+            marker.pose.position.y = float(cart_position[1])
             # marker.color = ColorRGBA(r=1,g=0,b=0,a=1)
             marker.color.r = 0.0
             marker.color.g = 1.0
