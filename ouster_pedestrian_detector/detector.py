@@ -91,27 +91,11 @@ class PedestrianDetectorNode(Node):
             marker.id = index
             marker.header.stamp = time_stamp
             marker.header.frame_id = self.frame_id
-            # marker.header.frame_id = 'base_link'
             marker.type = 1
-            # marker.position = Point(x=float(cart_position[0]), y=float(cart_position[1]))
-            # marker.scale = Vector3(x=1.,y=1.,z=1.)
-            scale = 1.
-            marker.scale.x = 0.5
-            marker.scale.y = 0.5
-            marker.scale.z = 1.5
-            # marker.pose = Pose(position=Point(x=float(cart_position[0]), y=float(cart_position[1])),
-            #                    orientation=Quaternion(x=0.,y=0.,z=0.,w=1.))
-            # real_scale = 1000
-            marker.pose.position.x = float(cart_position[0])
-            marker.pose.position.y = float(cart_position[1])
-            # marker.color = ColorRGBA(r=1,g=0,b=0,a=1)
-            marker.color.r = 0.0
-            marker.color.g = 1.0
-            marker.color.b = 0.0
-            marker.color.a = float(confidence)
+            marker.scale = Vector3(x=0.5,y=0.5,z=1.5)
+            marker.pose = Pose(position=Point(x=float(cart_position[0]), y=float(cart_position[1])))
+            marker.color = ColorRGBA(r=0.,g=1.,b=0.,a=float(confidence))
             marker.lifetime = Duration(seconds=0.1).to_msg()
-            # marker.points = []
-            # marker.points.append(Point(x=float(cart_position[0]), y=float(cart_position[1])))
             marker.frame_locked = True
             marker_array.markers.append(marker)
 
