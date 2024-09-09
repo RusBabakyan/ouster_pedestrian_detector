@@ -1,4 +1,3 @@
-[In reply to Ruslan Babakyan]
 # Ouster Pedestrian Detector
 
 ## Description
