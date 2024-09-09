@@ -22,28 +22,44 @@ from ament_index_python.packages import get_package_share_directory
 
 
 class PedestrianDetectorNode(Node):
-
-    def __init__(self):
-        super().__init__(package_name)
+    def init(self):
+        # Call parent class initializer
+        super().init(package_name)
+        
+        # Set up QoS profile for subscribers
         scan_sub_qos = rclpy.qos.QoSProfile(depth=10,
-                               reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT,
-                               durability=rclpy.qos.DurabilityPolicy.VOLATILE)
+                                reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT,
+                                durability=rclpy.qos.DurabilityPolicy.VOLATILE)
 
+        # Create subscribers for reflection and range images
         self.reflec_subscriber = Subscriber(self, Image, "/ouster/reflec_image", qos_profile=scan_sub_qos)
         self.range_subscriber  = Subscriber(self, Image, "/ouster/range_image", qos_profile=scan_sub_qos)
 
+        # Create publishers for pedestrian data
         self.quantity_publisher = self.create_publisher(Int32, 'pedestrians/quantity', 10)
         self.pose_publisher = self.create_publisher(PoseArray, 'pedestrians/pose', 10)
         self.marker_publisher = self.create_publisher(MarkerArray, 'pedestrians/marker', 10)
 
+        self.declare_parameter('Tracker', False)
+        self.tracker_enabled = self.get_parameter('Tracker').value
+
+        # Synchronize messages from reflection and range subscribers
         self.sync = TimeSynchronizer([self.reflec_subscriber, self.range_subscriber], 10)
         self.sync.registerCallback(self.MessageCallback)
 
+        # Initialize CV bridge for image conversion
         self.cv_bridge = CvBridge()
+        
+        # Set the model path for the pedestrian detector
         self.model_path = os.path.join(get_package_share_directory(package_name), 'best.pt')
-        # self.detector = PedestrianDetector(self.model_path, conf_threshold=0.6, angle_offset=-np.pi/2, center_radius=3)
+        
+        # Initialize pedestrian detector
         self.detector = PedestrianDetector(self.model_path, conf_threshold=0.6, angle_offset=0, center_radius=3)
+        
+        # Set the frame ID used in messages
         self.frame_id = 'os_lidar'
+        
+        # Log that the node has started
         self.get_logger().info(f"Node started")
 
 

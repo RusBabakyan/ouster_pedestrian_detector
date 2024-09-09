@@ -1,14 +1,8 @@
 from ultralytics import YOLO
 import cv2
 import numpy as np
-from time import time
-from pprint import pprint
 import matplotlib.pyplot as plt
 import torch
-
-# from pathlib import Path
-# from rosbags.highlevel import AnyReader
-# from rosbags.image import image_to_cvimage
 
 from collections import namedtuple
 
