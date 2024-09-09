@@ -40,11 +40,23 @@ class PedestrianDetectorNode(Node):
         self.pose_publisher = self.create_publisher(PoseArray, "pedestrians/pose", 10)
         self.marker_publisher = self.create_publisher(MarkerArray, "pedestrians/marker", 10)
 
-        # self.declare_parameter("Tracker", True)
-        # self.tracker_enabled = self.get_parameter("Tracker").value
-        self.tracker_enabled = True
+        self.declare_parameter("Tracker", True)
+        self.declare_parameter("Tracker/distance_threshold", 0.5)
+        self.declare_parameter("Tracker/lost_time", 10)
+        self.declare_parameter("Detector/conf_threshold", 0.5)
+        self.declare_parameter("Detector/angle_offset", 0)
+        self.declare_parameter("Detector/center_radius", 3)
+
+        self.tracker_enabled = self.get_parameter("Tracker").value
+        distance_threshold = self.get_parameter("Tracker/distance_threshold").value
+        lost_time = self.get_parameter("Tracker/lost_time").value
+        conf_threshold = self.get_parameter("Detector/conf_threshold").value
+        angle_offset = self.get_parameter("Detector/angle_offset").value
+        center_radius = self.get_parameter("Detector/center_radius").value
+
+
         if self.tracker_enabled:
-            self.tracker = Tracker(distance_threshold=0.9, lost_time=10)
+            self.tracker = Tracker(distance_threshold=distance_threshold, lost_time=lost_time)
             self.tracker_publisher = self.create_publisher(MarkerArray, "pedestrians/tracker", 10)
 
         # Synchronize messages from reflection and range subscribers
@@ -63,7 +75,7 @@ class PedestrianDetectorNode(Node):
 
         # Initialize pedestrian detector
         self.detector = PedestrianDetector(
-            self.model_path, conf_threshold=0.5, angle_offset=0, center_radius=3
+            self.model_path, conf_threshold=conf_threshold, angle_offset=angle_offset, center_radius=center_radius
         )
 
         # Set the frame ID used in messages
