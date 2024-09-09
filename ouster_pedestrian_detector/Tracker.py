@@ -2,6 +2,8 @@ import numpy as np
 
 from collections import namedtuple, defaultdict
 
+Tracked_Points = namedtuple('Tracked_Points', ['cart_position', 'id', 'is_real'])
+
 class Point:
 
     lost_time = 20
@@ -10,15 +12,22 @@ class Point:
         self.position = position
         self.velocity = np.array((0,0))
         self.lost_counter = 0
+        self.is_real = True
 
-    def update(self):
+    def update(self, position):
+        self.velocity = position - self.position
+        self.position = position
+        self.is_real = True
+        self.lost_counter = 0
         pass
 
     def predict(self):
         if self.increase_lost_counter():
             return True
         else:
-            pass
+            self.is_real = False
+            self.position += self.velocity * (self.lost_time - self.lost_counter + 1) / self.lost_time
+
 
     def increase_lost_counter(self):
         self.lost_counter += 1
@@ -27,8 +36,9 @@ class Point:
 
 
 class Tracker:
-    def __init__(self, distance_threshold=0.1):
+    def __init__(self, distance_threshold=0.3, lost_time = 10):
         self.points = defaultdict(lambda: Point())
+        Point.lost_time = lost_time
         self.index_counter = 0
         self.distance_threshold = distance_threshold
 
@@ -36,36 +46,51 @@ class Tracker:
         self.index_counter += 1
         return self.index_counter
 
-    def input(self, people):
+    def track(self, people):
         if self.points:
             if people:
                 self.associate(people)
                 pass
             else:
-                for id in self.points:
-                    self.predict(id)
-        else:
+                self.predict(self.points.keys())
+
+        elif people:
             for position in people.cart_position:
                 self.points[self.new_id()] = Point(position)
 
+        return self.output()
+    
+    def delete_lost(self, ids):
+        if ids:
+            for del_id in ids:
+                del self.points[del_id]
+
     def associate(self, people):
         keys   = list(self.points.keys())
-        points_old = list(self.points.items())
+        # points_old = np.array(list(self.points.items()))
+        points_old = self.to_numpy()
         points_new = people.cart_position
         associations, old_losted_ids, new_appeared_ids = self.dist_matrix(points_old, points_new)
         for old_id, new_id in associations:
             self.points[keys[old_id]].update(points_new[new_id, :])
-
-        for old_losted_id in old_losted_ids:
-            self.predict(keys[old_losted_id])
+        
+        # self.predict(keys[old_losted_ids])
+        self.predict([keys[id] for id in old_losted_ids])
 
         for new_appeared_id in new_appeared_ids:
-            self.points[new_id()] = Point(points_new[new_appeared_id, :])
+            self.points[self.new_id()] = Point(points_new[new_appeared_id, :])
         pass
 
-    def predict(self, id):
-        if self.points[id].predict():
-            del self.points.pop(id)
+    def predict(self, ids):
+        if not ids:
+            return
+        del_list = []
+        for id in ids:
+            if self.points[id].predict():
+                del_list.append(id)
+        if del_list:
+            for id in del_list:
+                del self.points[id]
 
     def dist_matrix(self, L1, L2):
         dist = np.linalg.norm(L1[:, None, :] - L2[None, :, :], axis = -1)
@@ -89,5 +114,19 @@ class Tracker:
         old_losted   = list(set(range(rows_amount)) - set(old))
         new_appeared = list(set(range(cols_amount)) - set(new))
         return associations, old_losted, new_appeared
+    
+    def to_numpy(self):
+        return np.array(list(map(lambda point: point.position, self.points.values())))
+    
+    def output(self):
+        is_real = []
+        positions = []
+        ids = []
+        for id, point in self.points.items():
+            ids.append(id)
+            positions.append(point.position)
+            is_real.append(point.is_real)
+
+        return Tracked_Points(np.array(positions), np.array(ids).astype(np.int32), np.array(is_real).astype(bool))
 
             
