@@ -12,7 +12,7 @@ The Ouster Pedestrian Detector is a ROS2 Python node for detecting and tracking 
 - Command Breakdown
 - Launch File Parameters
 - Dependencies
-- Support
+- Topics
 
 ## Installation
 
