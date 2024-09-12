@@ -20,7 +20,7 @@ To install the Ouster Pedestrian Detector, please follow these steps:
 
 ### Step 1: Clone the Repository
 
-Clone this repository to your local machine:
+Clone this repository to your ROS2 workspace:
 ``` bash
 git clone https://github.com/yourusername/ouster_pedestrian_detector.git
 cd ouster_pedestrian_detector
@@ -39,6 +39,10 @@ pip install ultralytics
 Build the package with colcon:
 ``` bash
 colcon build
+```
+or
+``` bash
+colcon build --symlink-install
 ```
 
 ### Step 4: Source the Setup Script
@@ -102,7 +106,6 @@ The project includes the following dependencies:
 
 - ```setuptools```: For package setup and installation.
 - ```rclpy```: The ROS2 client library for Python.
-- ```message_filters```: To handle messages in ROS2.
 - ```ultralytics```: For the YOLOv8n mod
 
 ## Topics
