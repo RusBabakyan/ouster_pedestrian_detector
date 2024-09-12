@@ -4,7 +4,7 @@ package_name = 'ouster_pedestrian_detector'
 
 setup(
     name=package_name,
-    version='0.0.0',
+    version='0.1.0',
     packages=find_packages(exclude=['test'], include=['ouster_pedestrian_detector', 'ouster_pedestrian_detector.*']),
     data_files=[
         ('share/ament_index/resource_index/packages',

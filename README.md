@@ -29,8 +29,8 @@ cd ouster_pedestrian_detector
 ### Step 2: Install Dependencies
 
 Make sure to install the required dependencies. While most dependencies will be installed automatically, you will need to install ultralytics manually:
-
 ``` bash
+rosdep install -i --from-path src --rosdistro <your_ros_distro> -y
 pip install ultralytics
 ```
 
