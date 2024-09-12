@@ -1,10 +1,10 @@
-from ultralytics import YOLO
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
-import torch
-
 from collections import namedtuple
+
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from ultralytics import YOLO
 
 Persons = namedtuple('Persons', ['result', 'quantity', 'center', 'conf', 'polar_position', 'cart_position'])
 
