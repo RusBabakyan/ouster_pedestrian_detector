@@ -173,8 +173,7 @@ class PedestrianDetectorNode(Node):
             marker.frame_locked = True
             marker_array.markers.append(marker)
         self.tracker_publisher.publish(marker_array)
-        pass
-
+        
 
 def main(args=None):
     rclpy.init(args=args)
