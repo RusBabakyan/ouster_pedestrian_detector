@@ -1,8 +1,15 @@
 import numpy as np
 
 from collections import namedtuple, defaultdict
+from typing import List
 
-Tracked_Points = namedtuple('Tracked_Points', ['cart_position', 'id', 'is_real'])
+
+class TrackedObject:
+    def __init__(self, cart_position, id, lost) -> None:
+        self.cart_position = np.array(cart_position)
+        self.id = np.array(id).astype(np.int32)
+        self.lost = np.array(lost).astype(bool)
+                                
 
 class Point:
 
@@ -12,12 +19,12 @@ class Point:
         self.position = position
         self.velocity = np.array((0,0))
         self.lost_counter = 0
-        self.is_real = True
+        self.lost = False
 
     def update(self, position):
         self.velocity = position - self.position
         self.position = position
-        self.is_real = True
+        self.lost = False
         self.lost_counter = 0
         pass
 
@@ -25,7 +32,7 @@ class Point:
         if self.increase_lost_counter():
             return True
         else:
-            self.is_real = False
+            self.lost = True
             self.position += self.velocity * (self.lost_time - self.lost_counter + 1) / self.lost_time
 
 
@@ -119,14 +126,14 @@ class Tracker:
         return np.array(list(map(lambda point: point.position, self.points.values())))
     
     def output(self):
-        is_real = []
+        lost = []
         positions = []
         ids = []
         for id, point in self.points.items():
             ids.append(id)
             positions.append(point.position)
-            is_real.append(point.is_real)
+            lost.append(point.lost)
 
-        return Tracked_Points(np.array(positions), np.array(ids).astype(np.int32), np.array(is_real).astype(bool))
+        return TrackedObject(positions, ids, lost)
 
             

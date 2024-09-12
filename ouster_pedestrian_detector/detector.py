@@ -150,7 +150,7 @@ class PedestrianDetectorNode(Node):
         marker_array = MarkerArray()
         # self.get_logger().info(pformat(people))
 
-        for cart_position, id, is_real in zip(people.cart_position, people.id, people.is_real):
+        for cart_position, id, lost in zip(people.cart_position, people.id, people.lost):
             marker = Marker()
             marker.id = int(id)
             marker.header.stamp = time_stamp
@@ -161,13 +161,13 @@ class PedestrianDetectorNode(Node):
             marker.pose = Pose(
                 position=Point(x=float(cart_position[0]), y=float(cart_position[1]))
             )
-            if is_real:
-                g = 1.0
-                b = 0.0
-                marker.color = ColorRGBA(r=0.0, g=1.0, b=0.0, a=0.8)
-            else:
+            if lost:
                 g = 0.0
                 b = 1.0
+                marker.color = ColorRGBA(r=0.0, g=1.0, b=0.0, a=0.8)
+            else:
+                g = 1.0
+                b = 0.0
             marker.color = ColorRGBA(r=0.0, g=g, b=b, a=0.8)
             marker.lifetime = Duration(seconds=0.1).to_msg()
             marker.frame_locked = True
