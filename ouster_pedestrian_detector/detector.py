@@ -18,11 +18,28 @@ from .Tracker import Tracker
 
 package_name = "ouster_pedestrian_detector"
 
+class ParametersProcessor():
+    def __init__(self, **parameter_dict):
+        self.dict = parameter_dict
+        
+    def declare_parameters(self, node_class):
+        for name, default_value in self.dict.items():
+            node_class.declare_parameter(name, default_value)
+            self.dict[name] = node_class.get_parameter(name).value
+
+    def setallatr(self, node_class, *args):
+        assert all([type(arg) == String for arg in args])
+
+        for arg in args:
+            assert type(arg) == String, f"{arg} is not a string type"
+            setattr(node_class, arg, self.dict[arg])
+
+
 
 class PedestrianDetectorNode(Node):
     def __init__(self):
         # Call parent class initializer
-        super().__init__(node_name = "ouster_pedestrian_detector")
+        super().__init__(node_name = package_name)
 
         # Set up QoS profile for subscribers
         scan_sub_qos = rclpy.qos.QoSProfile(
@@ -56,7 +73,7 @@ class PedestrianDetectorNode(Node):
 
 
         if self.tracker_enabled:
-            self.tracker = Tracker(distance_threshold=distance_threshold, lost_time=lost_time)
+            self.tracker = Tracker(distance_threshold=distance_threshold, LOST_TIME=lost_time)
             self.tracker_publisher = self.create_publisher(MarkerArray, "pedestrians/tracker", 10)
 
         # Synchronize messages from reflection and range subscribers
@@ -173,7 +190,7 @@ class PedestrianDetectorNode(Node):
             marker.frame_locked = True
             marker_array.markers.append(marker)
         self.tracker_publisher.publish(marker_array)
-        
+
 
 def main(args=None):
     rclpy.init(args=args)
