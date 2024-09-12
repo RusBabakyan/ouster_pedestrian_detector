@@ -31,7 +31,7 @@ class PedestrianDetector():
             case "/ouster/range_image":
                 return img
             case _:
-                raise TypeError("Unsupported type of image")
+                raise TypeError(f"Unsupported type of image: {type}")
 
     def get_bearing(self, centers) -> np.ndarray:
         return ((1-(centers[:,0] / self.imgwidth)) * 2 * np.pi)[:, np.newaxis] + self.angle_offset
@@ -57,22 +57,25 @@ class PedestrianDetector():
         result = self.model.predict(img, imgsz=self.imgsz, verbose=False)[0]
         
         if result:
-            centers = result.boxes.xywh[:,0:2].cpu().numpy() # array[(x,y) * amount]\
             confs = result.boxes.conf.cpu().numpy()
+            confidence_mask = confs > self.conf_threshold
+            confs = confs[confidence_mask]
+
+            centers = result.boxes.xywh[:,0:2].cpu().numpy()[confidence_mask]
+
             bearing = self.get_bearing(centers)
             distance = self.get_distance(img_range, centers)
             polar_position = np.column_stack((bearing, distance))
             cart_position = np.column_stack((distance * np.cos(bearing), distance * np.sin(bearing)))
             # print(f"conf: {confs.shape}, bear: {bearing.shape}, dist: {distance.shape}, polar: {polar_position.shape}, cart: {cart_position.shape}")
-            confidence_mask = confs > self.conf_threshold
-            quantity = centers[confidence_mask].shape[0]
+            quantity = centers.shape[0]
             if quantity:
                 return Persons(result,
                             quantity,
-                            centers[confidence_mask],
-                            confs[confidence_mask],
-                            polar_position[confidence_mask],
-                            cart_position[confidence_mask])
+                            centers,
+                            confs,
+                            polar_position,
+                            cart_position)
 
     def plot_results(results, conf_threshold=0.0):
         results = results[0]
