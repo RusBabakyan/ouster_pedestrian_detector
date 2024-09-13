@@ -1,6 +1,7 @@
 import numpy as np
 
 from collections import defaultdict
+from time import time
 
 
 class TrackedObject:
@@ -13,13 +14,16 @@ class TrackedObject:
 class Point:
     def __init__(self, position: np.array, lost_time: int = 20) -> None:
         self.lost_time = lost_time
+        self.time = time()
         self.position = position
         self.velocity = np.array((0,0))
         self.lost_counter = 0
         self.lost = False
 
     def update(self, position):
-        self.velocity = position - self.position
+        dt = time() - self.time
+        self.time = time()
+        self.velocity = (position - self.position)/dt
         self.position = position
         self.lost = False
         self.lost_counter = 0
@@ -29,8 +33,12 @@ class Point:
         if self.increase_lost_counter():
             return True
         else:
+            dt = time() - self.time
+            self.time = time()
             self.lost = True
-            self.position += self.velocity * (self.lost_time - self.lost_counter + 1) / self.lost_time
+            self.velocity = self.velocity * (self.lost_time - self.lost_counter + 1) / self.lost_time ## apply slowing speed
+            # self.position += self.velocity * (self.lost_time - self.lost_counter + 1) / self.lost_time
+            self.position += self.velocity * dt
             return False
 
 
