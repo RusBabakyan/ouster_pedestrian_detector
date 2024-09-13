@@ -11,10 +11,8 @@ class TrackedObject:
                                 
 
 class Point:
-
-    lost_time = 20
-
-    def __init__(self, position: np.array) -> None:
+    def __init__(self, position: np.array, lost_time: int = 20) -> None:
+        self.lost_time = lost_time
         self.position = position
         self.velocity = np.array((0,0))
         self.lost_counter = 0
@@ -45,7 +43,7 @@ class Point:
 class Tracker:
     def __init__(self, distance_threshold=0.3, lost_time = 10):
         self.points = defaultdict(lambda: Point())
-        Point.lost_time = lost_time
+        self.lost_time = lost_time
         self.index_counter = 0
         self.distance_threshold = distance_threshold
 
@@ -62,7 +60,7 @@ class Tracker:
 
         elif people:
             for position in people.cart_position:
-                self.points[self.new_id()] = Point(position)
+                self.points[self.new_id()] = Point(position, self.lost_time)
 
         return self.output()
     
@@ -84,7 +82,7 @@ class Tracker:
         self.predict([keys[id] for id in old_losted_ids])
 
         for new_appeared_id in new_appeared_ids:
-            self.points[self.new_id()] = Point(points_new[new_appeared_id, :])
+            self.points[self.new_id()] = Point(points_new[new_appeared_id, :], self.lost_time)
 
     def predict(self, ids):
         if not ids:
