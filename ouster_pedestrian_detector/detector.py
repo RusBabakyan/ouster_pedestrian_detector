@@ -22,7 +22,8 @@ default_dict = {'PedestrianDetectorNode':   {'tracker_enable': True,
                                              'name_publisher_pose': '/pedestrians/pose',
                                              'name_publisher_marker': '/pedestrians/marker',
                                              'name_publisher_tracker_pose': '/pedestrians/tracker/pose',
-                                             'name_publisher_tracker_marker': '/pedestrians/tracker/marker',},
+                                             'name_publisher_tracker_marker': '/pedestrians/tracker/marker',
+                                             'frame_id': 'os_lidar'},
                 'PedestrianDetector':       {'conf_threshold': 0.5,
                                              'angle_offset': 0,
                                              'center_radius': 3,
@@ -115,9 +116,6 @@ class PedestrianDetectorNode(Node):
         # Initialize pedestrian detector
         self.detector = PedestrianDetector(
             self.model_path, **parameter_processor(PedestrianDetector))
-
-        # Set the frame ID used in messages
-        self.frame_id = "os_lidar"
 
         # Log that the node has started
         self.get_logger().info(f"Node started")
