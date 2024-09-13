@@ -16,7 +16,8 @@ from .Tracker import Tracker
 
 package_name = "ouster_pedestrian_detector"
 
-default_dict = {'PedestrianDetectorNode':   {'tracker_enable': True, 
+default_dict = {'PedestrianDetectorNode':   {'tracker_enable': True,
+                                             'marker_enable': True, 
                                              'name_publisher_quantity': '/pedestrians/quantity',
                                              'name_publisher_pose': '/pedestrians/pose',
                                              'name_publisher_marker': '/pedestrians/marker',
@@ -31,26 +32,44 @@ default_dict = {'PedestrianDetectorNode':   {'tracker_enable': True,
 
 
 class ParametersProcessor():
-    def __init__(self, node_class=None, **default_dict):
+    def __init__(self, node_obj=None, **default_dict):
         self.dict = default_dict
-        if node_class:
-            self._declare_parameters(node_class)
+        if node_obj:
+            self._declare_parameters(node_obj)
         
-    def _declare_parameters(self, node_class):
-        assert isinstance(node_class, Node), f"{node_class} is not a subclass of Node"
-        name = node_class.__class__.__name__
+    def _declare_parameters(self, node_obj):
+        assert isinstance(node_obj, Node), f"{node_obj} is not a subclass of Node"
+        name = node_obj.__class__.__name__
 
         for class_name, default_class_dict in self.dict.items():
             for param, default_value in default_class_dict.items():
-                node_class.declare_parameter(param, default_value)
-                self.dict[class_name][param] = node_class.get_parameter(param).value
+                node_obj.declare_parameter(param, default_value)
+                default_class_dict[param] = node_obj.get_parameter(param).value
                 if name == class_name:
-                    setattr(node_class, param, self.dict[class_name][param])
+                    setattr(node_obj, param, default_class_dict[param])
 
     def __call__(self, param_class):
         name = param_class.__name__
         assert name in self.dict.keys(), f"{name} is not defined in {self.dict.keys()}"
         return self.dict[name]
+    
+class OptionalPublisher():
+    def __init__(self, node_obj, msg_type, topic: str,  queue, enabled=True):
+        assert isinstance(node_obj, Node), f"{node_obj} is not a subclass of Node"
+        self.enabled = enabled
+        if self.enabled:
+            self.pubslisher = node_obj.create_publisher(msg_type, topic, queue)
+            self.publish = self.__publish
+        else:
+            self.publish = self.__empty
+
+    @staticmethod
+    def __empty(msg):
+        pass
+
+    def __publish(self, msg):
+        self.pubslisher.publish(msg)
+        
 
 
 class PedestrianDetectorNode(Node):
@@ -71,13 +90,13 @@ class PedestrianDetectorNode(Node):
         self.range_subscriber = Subscriber(self, Image, "/ouster/range_image", qos_profile=scan_sub_qos)
 
         # Create publishers for pedestrian data
-        self.quantity_publisher = self.create_publisher(Int32, self.name_publisher_quantity, 10)
-        self.pose_publisher = self.create_publisher(PoseArray, self.name_publisher_pose , 10)
-        self.marker_publisher = self.create_publisher(MarkerArray, self.name_publisher_marker, 10)
+        self.quantity_publisher = OptionalPublisher(self, Int32, self.name_publisher_quantity, 10)
+        self.pose_publisher = OptionalPublisher(self, PoseArray, self.name_publisher_pose , 10)
+        self.marker_publisher = OptionalPublisher(self, MarkerArray, self.name_publisher_marker, 10, self.marker_enable)
 
         if self.tracker_enable:
             self.tracker = Tracker(**parameter_processor(Tracker))
-            self.tracker_publisher = self.create_publisher(MarkerArray, self.name_publisher_tracker_marker, 10)
+            self.tracker_publisher = OptionalPublisher(self, MarkerArray, self.name_publisher_tracker_marker, 10, self.marker_enable)
 
         # Synchronize messages from reflection and range subscribers
         self.sync = TimeSynchronizer(
@@ -167,7 +186,6 @@ class PedestrianDetectorNode(Node):
         if not people:
             return
         marker_array = MarkerArray()
-        # self.get_logger().info(pformat(people))
 
         for cart_position, id, lost in zip(people.cart_position, people.id, people.lost):
             marker = Marker()
@@ -176,7 +194,6 @@ class PedestrianDetectorNode(Node):
             marker.header.frame_id = self.frame_id
             marker.type = 1
             marker.scale = Vector3(x=0.5, y=0.5, z=1.5)
-            # self.get_logger().info(pformat(cart_position))
             marker.pose = Pose(
                 position=Point(x=float(cart_position[0]), y=float(cart_position[1]))
             )

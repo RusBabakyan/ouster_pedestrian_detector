@@ -14,12 +14,13 @@ def generate_launch_description():
             package='ouster_pedestrian_detector',
             executable='detector',
             name='ouster_pedestrian_detector',
-            parameters=[{'Tracker': True,
-                         'Tracker/distance_threshold': 0.9,
-                         'Tracker/lost_time': 10,
-                         'Detector/conf_threshold': 0.5,
-                         'Detector/angle_offset': 0,
-                         'Detector/center_radius': 3,}]
+            parameters=[{'tracker_enable': True,
+                         'distance_threshold': 0.9,
+                         'lost_time': 10,
+                         'conf_threshold': 0.5,
+                         'angle_offset': 0,
+                         'center_radius': 3,
+                         'marker_enable': True}]
         ),
         ExecuteProcess(
             cmd=['ros2', 'bag', 'play', '/home/ruslan/Desktop/Skoltech/YOLO_LIDAR/code/ros2_ws/src/pedestrian_detector/pedestrian_detector/rosbag/rosbag2_2024_08_19-16_41_01_0.db3'],
