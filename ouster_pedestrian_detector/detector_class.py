@@ -1,11 +1,18 @@
-from collections import namedtuple
+from dataclasses import dataclass
 
 import cv2
 import numpy as np
 import torch
 from ultralytics import YOLO
 
-Persons = namedtuple('Persons', ['result', 'quantity', 'center', 'conf', 'polar_position', 'cart_position'])
+@dataclass
+class DetectionResult:
+    result: np.ndarray
+    quantity: int
+    center: np.ndarray
+    conf: np.ndarray
+    polar_position: np.ndarray
+    cart_position: np.ndarray
 
 
 class PedestrianDetector():
@@ -53,7 +60,7 @@ class PedestrianDetector():
         return (distance * self.distance_scale / 1000).astype(float)
 
 
-    def find_people(self, img, img_range) -> namedtuple:
+    def find_people(self, img, img_range) -> DetectionResult:
         result = self.model.predict(img, imgsz=self.imgsz, verbose=False)[0]
         
         if result:
@@ -70,7 +77,7 @@ class PedestrianDetector():
             # print(f"conf: {confs.shape}, bear: {bearing.shape}, dist: {distance.shape}, polar: {polar_position.shape}, cart: {cart_position.shape}")
             quantity = centers.shape[0]
             if quantity:
-                return Persons(result,
+                return DetectionResult(result,
                             quantity,
                             centers,
                             confs,

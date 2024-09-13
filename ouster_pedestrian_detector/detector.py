@@ -11,8 +11,8 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import ColorRGBA, Int32
 from visualization_msgs.msg import Marker, MarkerArray
 
-from .DetectorClass import PedestrianDetector
-from .Tracker import Tracker
+from .detector_class import PedestrianDetector
+from .tracker import Tracker
 
 package_name = "ouster_pedestrian_detector"
 
