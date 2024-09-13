@@ -56,7 +56,7 @@ source install/setup.bash
 
 After you've installed and built the package, you can run the program using the following command:
 ``` bash
-ros2 launch ouster_pedestrian_detector launch/with_foxglow.py
+ros2 launch ouster_pedestrian_detector launch/detector_with_foxglow.py
 ```
 
 This command will launch the necessary nodes and processes as defined in the launch file.
