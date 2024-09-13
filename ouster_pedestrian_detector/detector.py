@@ -24,7 +24,8 @@ default_dict = {'PedestrianDetectorNode':   {'tracker_enable': True,
                                              'name_publisher_tracker_marker': '/pedestrians/tracker/marker',},
                 'PedestrianDetector':       {'conf_threshold': 0.5,
                                              'angle_offset': 0,
-                                             'center_radius': 3}, 
+                                             'center_radius': 3,
+                                             'device': 'cuda'}, 
                 'Tracker':                  {'distance_threshold': 0.5,
                                              'lost_time': 10}}
 

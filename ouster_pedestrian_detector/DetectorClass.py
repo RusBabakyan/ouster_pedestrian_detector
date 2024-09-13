@@ -1,7 +1,6 @@
 from collections import namedtuple
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from ultralytics import YOLO
@@ -10,10 +9,11 @@ Persons = namedtuple('Persons', ['result', 'quantity', 'center', 'conf', 'polar_
 
 
 class PedestrianDetector():
-    def __init__(self, model_path, center_radius=10, imgsz=640, imgwidth=1024, angle_offset=0, conf_threshold=0.0) -> None:
-        torch.cuda.set_device(0)
+    def __init__(self, model_path, center_radius=10, imgsz=640, imgwidth=1024, angle_offset=0, conf_threshold=0.0, device = 'cuda') -> None:
+        if device == 'cuda':
+            torch.cuda.set_device(0)
         self.model = YOLO(model_path, task="detect")
-        self.model.to("cuda")
+        self.model.to(device)
         self.imgsz = imgsz
         self.imgwidth = imgwidth
         self.center_radius = center_radius
