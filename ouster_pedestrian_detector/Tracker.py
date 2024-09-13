@@ -1,6 +1,6 @@
 import numpy as np
 
-from collections import namedtuple, defaultdict
+from collections import defaultdict
 
 
 class TrackedObject:
