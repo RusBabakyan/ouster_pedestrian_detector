@@ -1,7 +1,6 @@
 import numpy as np
 
 from collections import namedtuple, defaultdict
-from typing import List
 
 
 class TrackedObject:
@@ -13,7 +12,7 @@ class TrackedObject:
 
 class Point:
 
-    LOST_TIME = 20
+    lost_time = 20
 
     def __init__(self, position: np.array) -> None:
         self.position = position
@@ -33,20 +32,20 @@ class Point:
             return True
         else:
             self.lost = True
-            self.position += self.velocity * (self.LOST_TIME - self.lost_counter + 1) / self.LOST_TIME
+            self.position += self.velocity * (self.lost_time - self.lost_counter + 1) / self.lost_time
             return False
 
 
     def increase_lost_counter(self):
         self.lost_counter += 1
-        if self.lost_counter > self.LOST_TIME:
+        if self.lost_counter > self.lost_time:
             return True
 
 
 class Tracker:
-    def __init__(self, distance_threshold=0.3, LOST_TIME = 10):
+    def __init__(self, distance_threshold=0.3, lost_time = 10):
         self.points = defaultdict(lambda: Point())
-        Point.LOST_TIME = LOST_TIME
+        Point.lost_time = lost_time
         self.index_counter = 0
         self.distance_threshold = distance_threshold
 

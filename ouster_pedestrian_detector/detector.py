@@ -1,16 +1,14 @@
 import os
-from pprint import pprint, pformat
 
 import rclpy
 from ament_index_python.packages import get_package_share_directory
 from cv_bridge import CvBridge
 from geometry_msgs.msg import Point, Pose, PoseArray, Quaternion, Vector3
 from message_filters import Subscriber, TimeSynchronizer
-from pkg_resources import resource_stream
 from rclpy.duration import Duration
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-from std_msgs.msg import ColorRGBA, Int32, String
+from std_msgs.msg import ColorRGBA, Int32
 from visualization_msgs.msg import Marker, MarkerArray
 
 from .DetectorClass import PedestrianDetector
@@ -18,28 +16,47 @@ from .Tracker import Tracker
 
 package_name = "ouster_pedestrian_detector"
 
+default_dict = {'PedestrianDetectorNode':   {'tracker_enable': True, 
+                                             'name_publisher_quantity': '/pedestrians/quantity',
+                                             'name_publisher_pose': '/pedestrians/pose',
+                                             'name_publisher_marker': '/pedestrians/marker',
+                                             'name_publisher_tracker_pose': '/pedestrians/tracker/pose',
+                                             'name_publisher_tracker_marker': '/pedestrians/tracker/marker',},
+                'PedestrianDetector':       {'conf_threshold': 0.5,
+                                             'angle_offset': 0,
+                                             'center_radius': 3}, 
+                'Tracker':                  {'distance_threshold': 0.5,
+                                             'lost_time': 10}}
+
+
 class ParametersProcessor():
-    def __init__(self, **parameter_dict):
-        self.dict = parameter_dict
+    def __init__(self, node_class=None, **default_dict):
+        self.dict = default_dict
+        if node_class:
+            self._declare_parameters(node_class)
         
-    def declare_parameters(self, node_class):
-        for name, default_value in self.dict.items():
-            node_class.declare_parameter(name, default_value)
-            self.dict[name] = node_class.get_parameter(name).value
+    def _declare_parameters(self, node_class):
+        assert isinstance(node_class, Node), f"{node_class} is not a subclass of Node"
+        name = node_class.__class__.__name__
 
-    def setallatr(self, node_class, *args):
-        assert all([type(arg) == String for arg in args])
+        for class_name, default_class_dict in self.dict.items():
+            for param, default_value in default_class_dict.items():
+                node_class.declare_parameter(param, default_value)
+                self.dict[class_name][param] = node_class.get_parameter(param).value
+                if name == class_name:
+                    setattr(node_class, param, self.dict[class_name][param])
 
-        for arg in args:
-            assert type(arg) == String, f"{arg} is not a string type"
-            setattr(node_class, arg, self.dict[arg])
-
+    def __call__(self, param_class):
+        name = param_class.__name__
+        assert name in self.dict.keys(), f"{name} is not defined in {self.dict.keys()}"
+        return self.dict[name]
 
 
 class PedestrianDetectorNode(Node):
     def __init__(self):
         # Call parent class initializer
         super().__init__(node_name = package_name)
+        parameter_processor = ParametersProcessor(self, **default_dict)
 
         # Set up QoS profile for subscribers
         scan_sub_qos = rclpy.qos.QoSProfile(
@@ -53,28 +70,13 @@ class PedestrianDetectorNode(Node):
         self.range_subscriber = Subscriber(self, Image, "/ouster/range_image", qos_profile=scan_sub_qos)
 
         # Create publishers for pedestrian data
-        self.quantity_publisher = self.create_publisher(Int32, "pedestrians/quantity", 10)
-        self.pose_publisher = self.create_publisher(PoseArray, "pedestrians/pose", 10)
-        self.marker_publisher = self.create_publisher(MarkerArray, "pedestrians/marker", 10)
+        self.quantity_publisher = self.create_publisher(Int32, self.name_publisher_quantity, 10)
+        self.pose_publisher = self.create_publisher(PoseArray, self.name_publisher_pose , 10)
+        self.marker_publisher = self.create_publisher(MarkerArray, self.name_publisher_marker, 10)
 
-        self.declare_parameter("Tracker", True)
-        self.declare_parameter("Tracker/distance_threshold", 0.5)
-        self.declare_parameter("Tracker/lost_time", 10)
-        self.declare_parameter("Detector/conf_threshold", 0.5)
-        self.declare_parameter("Detector/angle_offset", 0)
-        self.declare_parameter("Detector/center_radius", 3)
-
-        self.tracker_enabled = self.get_parameter("Tracker").value
-        distance_threshold = self.get_parameter("Tracker/distance_threshold").value
-        lost_time = self.get_parameter("Tracker/lost_time").value
-        conf_threshold = self.get_parameter("Detector/conf_threshold").value
-        angle_offset = self.get_parameter("Detector/angle_offset").value
-        center_radius = self.get_parameter("Detector/center_radius").value
-
-
-        if self.tracker_enabled:
-            self.tracker = Tracker(distance_threshold=distance_threshold, LOST_TIME=lost_time)
-            self.tracker_publisher = self.create_publisher(MarkerArray, "pedestrians/tracker", 10)
+        if self.tracker_enable:
+            self.tracker = Tracker(**parameter_processor(Tracker))
+            self.tracker_publisher = self.create_publisher(MarkerArray, self.name_publisher_tracker_marker, 10)
 
         # Synchronize messages from reflection and range subscribers
         self.sync = TimeSynchronizer(
@@ -92,8 +94,7 @@ class PedestrianDetectorNode(Node):
 
         # Initialize pedestrian detector
         self.detector = PedestrianDetector(
-            self.model_path, conf_threshold=conf_threshold, angle_offset=angle_offset, center_radius=center_radius
-        )
+            self.model_path, **parameter_processor(PedestrianDetector))
 
         # Set the frame ID used in messages
         self.frame_id = "os_lidar"
@@ -119,7 +120,7 @@ class PedestrianDetectorNode(Node):
             self.PublishPoseArray(people, time_stamp)
             self.PublishMarkerArray(people, time_stamp)
 
-        if self.tracker_enabled:
+        if self.tracker_enable:
             tracked_people = self.tracker.track(people)
             self.PublishTrackedMarkerArray(tracked_people, time_stamp)
 
