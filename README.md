@@ -4,6 +4,8 @@
 
 The Ouster Pedestrian Detector is a ROS2 Python node for detecting and tracking people using LiDAR data and the YOLOv8n computer vision model. This project integrates advanced computer vision techniques and sensor data processing to facilitate real-time pedestrian detection and tracking.
 
+![image](images/image.jpg)
+
 ## Table of Contents
 
 - Installation
